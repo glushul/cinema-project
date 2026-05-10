@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from database import db_manager, Base
-from endpoints import catalog, seed, subscription
+from endpoints import catalog, seed, subscription, processes
 
 app = FastAPI(title="Cinema Lab System")
 
@@ -11,6 +11,7 @@ def startup():
 app.include_router(seed.router)
 app.include_router(subscription.router)
 app.include_router(catalog.router)
+app.include_router(processes.router)
 
 @app.get("/")
 def read_root():
