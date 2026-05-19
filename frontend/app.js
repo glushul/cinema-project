@@ -200,6 +200,7 @@ let isRegisterMode = false;
 const posterImages = {
   // "Начало": "/static/posters/inception.jpg",
   // "Аватар": "/static/posters/avatar.jpg",
+  "Крёстный отец": "/static/фотокарточки/godfather.jpg",
 };
 
 const posterPalettes = [

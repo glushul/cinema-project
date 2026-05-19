@@ -87,7 +87,15 @@ def cancel_subscription(user_id: int):
     if not subscription:
         return {"status": "failed", "message": "Активная подписка не найдена"}
 
-    subscription.is_active = 0
+    subscription_id = subscription.id
+    db.query(PaymentHistory).filter(
+        PaymentHistory.subscription_id == subscription_id
+    ).delete(synchronize_session=False)
+    db.delete(subscription)
     db.commit()
 
-    return {"status": "success", "message": "Подписка отменена"}
+    return {
+        "status": "success",
+        "message": "Подписка удалена",
+        "deleted_subscription_id": subscription_id
+    }
