@@ -14,6 +14,20 @@ router = APIRouter(prefix="/seed", tags=["Заполнение БД"])
 def seed_database():
     """Заполняет базу данных тестовыми данными (20+ записей)"""
     db = db_manager.get_session()
+
+    if db.query(User).first() or db.query(Content).first():
+        return {
+            "status": "already_seeded",
+            "message": "База данных уже заполнена тестовыми данными",
+            "details": {
+                "жанры": db.query(Genre).count(),
+                "пользователи": db.query(User).count(),
+                "контент": db.query(Content).count(),
+                "отзывы": db.query(Review).count(),
+                "история_просмотров": db.query(WatchHistory).count(),
+                "коллекции": db.query(Collection).count(),
+            }
+        }
     
     genres_data = ["Фантастика", "Боевик", "Драма", "Комедия", "Ужасы"]
     genres = []

@@ -1,12 +1,34 @@
 from fastapi import APIRouter, Query
 from database import db_manager
-from models import PaymentHistory, PaymentStatus, PaymentMethod, PLAN_CONFIG
+from models import PaymentHistory, PaymentStatus, PaymentMethod, PLAN_CONFIG, UserSubscription
 from services.subscription import PremiumSubscriptionProcessor, BasicSubscriptionProcessor
 from services.notifier import EmailNotifierFactory, PushNotifierFactory
 from services.strategies import CardPaymentStrategy, SBPPaymentStrategy, PaymentContext
 from datetime import datetime
 
 router = APIRouter(prefix="/subscription", tags=["Подписки"])
+
+@router.get("/user/{user_id}")
+def get_user_subscription(user_id: int):
+    db = db_manager.get_session()
+    subscription = db.query(UserSubscription).filter(
+        UserSubscription.user_id == user_id,
+        UserSubscription.is_active == 1
+    ).first()
+
+    if not subscription:
+        return {"status": "empty", "subscription": None}
+
+    return {
+        "status": "success",
+        "subscription": {
+            "id": subscription.id,
+            "plan": subscription.plan,
+            "price": subscription.price,
+            "start_date": subscription.start_date.isoformat() if subscription.start_date else None,
+            "end_date": subscription.end_date.isoformat() if subscription.end_date else None,
+        }
+    }
 
 @router.post("/activate/{user_id}")
 def subscribe(
@@ -51,4 +73,21 @@ def subscribe(
             "subscription_id": result["subscription_id"]
         }
         
-    return {"error": "Failed to activate subscription"}
+    return {"error": result.get("message", "Failed to activate subscription")}
+
+
+@router.post("/cancel/{user_id}")
+def cancel_subscription(user_id: int):
+    db = db_manager.get_session()
+    subscription = db.query(UserSubscription).filter(
+        UserSubscription.user_id == user_id,
+        UserSubscription.is_active == 1
+    ).first()
+
+    if not subscription:
+        return {"status": "failed", "message": "Активная подписка не найдена"}
+
+    subscription.is_active = 0
+    db.commit()
+
+    return {"status": "success", "message": "Подписка отменена"}

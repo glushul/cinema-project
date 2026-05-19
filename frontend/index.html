@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Поиск фильмов</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <header class="topbar" aria-label="Навигация">
+      <a class="brand" href="/" aria-label="Главная">
+        <span></span>
+        Filmspace
+      </a>
+      <nav>
+        <a href="/docs">API</a>
+        <button id="authButton" class="ghost" type="button">Войти</button>
+        <button id="seedButton" type="button">Обновить каталог</button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-label="Поиск фильмов">
+        <div class="hero-copy">
+          <p class="eyebrow">онлайн-каталог</p>
+          <h1>Найдите фильм на вечер</h1>
+          <p>Сортируйте подборку по рейтингу, году выпуска и жанрам.</p>
+        </div>
+        <form class="searchbar" id="searchForm">
+          <label class="search-field">
+            <span>Поиск</span>
+            <input id="searchInput" type="search" placeholder="Название фильма или сериала" autocomplete="off" />
+          </label>
+          <button type="submit">Искать</button>
+        </form>
+      </section>
+
+      <section class="filters" aria-label="Фильтры каталога">
+        <label>
+          Сортировка
+          <select id="sortSelect">
+            <option value="rating">Лучшие по рейтингу</option>
+            <option value="year">Сначала новинки</option>
+          </select>
+        </label>
+        <label>
+          Жанр
+          <input id="genreInput" type="text" placeholder="Фантастика" />
+        </label>
+        <label>
+          Рейтинг от
+          <input id="ratingInput" type="number" min="0" max="10" step="0.1" placeholder="8.5" />
+        </label>
+        <label>
+          Год от
+          <input id="yearInput" type="number" min="1900" max="2026" placeholder="2006" />
+        </label>
+        <button id="filterButton" type="button">Показать</button>
+        <button id="resetButton" class="ghost" type="button">Сбросить</button>
+      </section>
+
+      <section class="account-strip" id="accountStrip">
+        <div>
+          <p>Личный кабинет</p>
+          <h2 id="accountTitle">Войдите, чтобы оформить подписку</h2>
+        </div>
+        <button id="logoutButton" class="ghost" type="button" hidden>Выйти</button>
+      </section>
+
+      <section class="plans" aria-label="Подписки">
+        <article class="plan-card">
+          <div>
+            <p class="plan-label">Base</p>
+            <h3>Базовый доступ</h3>
+            <p>Каталог фильмов, поиск, фильтры и персональная история.</p>
+          </div>
+          <strong>299 ₽</strong>
+          <button class="subscribeButton" type="button" data-plan="BASE" data-payment="card">Оформить</button>
+        </article>
+        <article class="plan-card featured">
+          <div>
+            <p class="plan-label">Premium</p>
+            <h3>Полный доступ</h3>
+            <p>Расширенная подписка с приоритетными рекомендациями и push-уведомлением.</p>
+          </div>
+          <strong>599 ₽</strong>
+          <button class="subscribeButton" type="button" data-plan="PREMIUM" data-payment="sbp">Оформить</button>
+        </article>
+        <article class="subscription-status">
+          <p>Текущая подписка</p>
+          <h3 id="subscriptionTitle">Нет активной подписки</h3>
+          <span id="subscriptionDetails">Авторизуйтесь для проверки статуса</span>
+          <button id="cancelSubscriptionButton" class="ghost" type="button" hidden>Отменить подписку</button>
+        </article>
+      </section>
+
+      <section class="content">
+        <div class="section-title">
+          <div>
+            <p id="statusText">Каталог загружается</p>
+            <h2>Популярное сейчас</h2>
+          </div>
+          <span id="countText">0 фильмов</span>
+        </div>
+        <div id="catalogRoot" class="catalog" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <template id="movieTemplate">
+      <article class="movie-card">
+        <div class="poster">
+          <span class="poster-label"></span>
+        </div>
+        <div class="movie-info">
+          <h3></h3>
+          <p></p>
+        </div>
+      </article>
+    </template>
+
+    <div class="movie-modal" id="movieModal" aria-hidden="true">
+      <div class="modal-backdrop" data-close-modal></div>
+      <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <button class="modal-close" type="button" data-close-modal aria-label="Закрыть">×</button>
+        <div class="modal-poster" id="modalPoster"></div>
+        <div class="modal-content">
+          <p class="modal-kicker" id="modalMeta"></p>
+          <h2 id="modalTitle"></h2>
+          <p id="modalDescription"></p>
+          <div class="facts" id="modalFacts"></div>
+          <div class="chips" id="modalGenres"></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="auth-modal" id="authModal" aria-hidden="true">
+      <div class="modal-backdrop" data-close-auth></div>
+      <section class="auth-panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+        <button class="modal-close" type="button" data-close-auth aria-label="Закрыть">×</button>
+        <div>
+          <p class="modal-kicker">Аккаунт</p>
+          <h2 id="authTitle">Вход в систему</h2>
+          <p class="auth-note">Войдите или создайте аккаунт, чтобы оформить подписку.</p>
+        </div>
+        <form id="authForm" class="auth-form">
+          <label id="nameField">
+            Имя
+            <input id="authName" type="text" autocomplete="name" placeholder="Анна Смирнова" />
+          </label>
+          <label>
+            Email
+            <input id="authEmail" type="email" autocomplete="email" placeholder="anna@example.com" required />
+          </label>
+          <label>
+            Пароль
+            <input id="authPassword" type="password" autocomplete="current-password" placeholder="Введите пароль" required />
+          </label>
+          <button id="authSubmitButton" type="submit">Войти</button>
+        </form>
+        <button id="authModeButton" class="text-button" type="button">Создать новый аккаунт</button>
+        <p id="authMessage" class="form-message"></p>
+      </section>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

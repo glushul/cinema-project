@@ -15,6 +15,19 @@ from services.filter import (
 
 router = APIRouter(prefix="/catalog", tags=["Каталог и Подписки"])
 
+def serialize_content(content: Content) -> dict:
+    return {
+        "id": content.id,
+        "title": content.title,
+        "description": content.description,
+        "year": content.release_year,
+        "duration": content.duration,
+        "rating": content.rating,
+        "type": content.type.value if content.type else None,
+        "views": content.views_count,
+        "genres": [genre.name for genre in content.genres],
+    }
+
 @router.get("/")
 def browse_catalog(sort_by: str = Query("rating", enum=["rating", "year"])):    
     """Фильтрация/Сортировка контента (Strategy) + Мат. модель"""
@@ -28,7 +41,7 @@ def browse_catalog(sort_by: str = Query("rating", enum=["rating", "year"])):
     context = SortingContext(strategy)
     sorted_contents = context.apply(ranked)
     
-    return [{"title": c.title, "year": c.release_year} for c in sorted_contents]
+    return [serialize_content(c) for c in sorted_contents]
 
 @router.get("/filtered")
 def get_filtered_catalog(
@@ -57,4 +70,4 @@ def get_filtered_catalog(
         
     result = chain.apply(all_content)
     
-    return {"count": len(result), "movies": [c.title for c in result]}
+    return {"count": len(result), "movies": [serialize_content(c) for c in result]}

@@ -1,4 +1,4 @@
-echo "__pycache__/
+__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -8,4 +8,4 @@ env/
 .env
 cinema.db
 *.log
-.DS_Store" > .gitignore
+.DS_Store
