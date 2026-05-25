@@ -226,6 +226,22 @@ function createPosterBackground(title) {
   `;
 }
 
+const TICKET_PRICE = 350;
+let ticketQuantity = 1;
+
+function updateTicketUI() {
+  document.getElementById("qtyValue").textContent = ticketQuantity;
+  document.getElementById("totalPrice").textContent = (TICKET_PRICE * ticketQuantity).toLocaleString("ru-RU");
+}
+
+document.getElementById("qtyMinus").onclick = () => {
+  if (ticketQuantity > 1) { ticketQuantity--; updateTicketUI(); }
+};
+
+document.getElementById("qtyPlus").onclick = () => {
+  if (ticketQuantity < 10) { ticketQuantity++; updateTicketUI(); }
+};
+
 function openMovieModal(movie) {
   modalPoster.style.setProperty("--poster", createPosterBackground(movie.title));
   modalMeta.textContent = [movie.year, movie.type].filter(Boolean).join(" • ") || "Фильм";
@@ -249,6 +265,41 @@ function openMovieModal(movie) {
   movieModal.classList.add("is-open");
   movieModal.setAttribute("aria-hidden", "false");
   document.body.style.overflow = "hidden";
+
+  ticketQuantity = 1;
+  updateTicketUI();
+  document.getElementById("ticketSection").style.display = "block";
+
+  document.getElementById("buyTicketBtn").onclick = async () => {
+    if (!currentUser) {
+      openAuthModal();
+      return;
+    }
+    
+    const paymentMethod = document.querySelector("input[name='payment']:checked").value;
+
+    const cinemaType = Math.random() < 0.4 ? "premium" : "standard";
+
+    const response = await fetch("/tickets/buy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        movie_id: movie.id,
+        movie_title: movie.title,
+        user_id: currentUser.id,
+        quantity: ticketQuantity,
+        payment_method: paymentMethod,
+        cinema_type: cinemaType,
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      document.getElementById("ticketResult").textContent = data.detail || "Ошибка";
+      return;
+    }
+    document.getElementById("ticketResult").textContent = data.message;
+  };
 }
 
 function createFact(label, value) {
@@ -470,9 +521,13 @@ document.querySelectorAll(".subscribeButton").forEach((button) => {
 
 cancelSubscriptionButton.addEventListener("click", async () => {
   if (!currentUser) return;
-  await api.cancelSubscription(currentUser.id);
-  await refreshCurrentUser();
-  await refreshSubscription();
+  try {
+    await api.cancelSubscription(currentUser.id);
+    await refreshCurrentUser();
+    await refreshSubscription();
+  } catch (e) {
+    console.error("Ошибка отмены подписки:", e);
+  }
 });
 
 searchForm.addEventListener("submit", (event) => {

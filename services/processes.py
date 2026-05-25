@@ -52,6 +52,10 @@ class PaymentAdapter:
             "success": result["status"] == "success",
             "transaction": result["payment_id"]
         }
+    
+    def refund(self, amount: float, transaction_id: str) -> dict:
+        print(f"[REFUND] Возврат {amount} ₽ по транзакции {transaction_id}")
+        return {"success": True, "refunded": amount}
 
 
 class SubscriptionState(Enum):
@@ -85,6 +89,9 @@ class Command(ABC):
     def execute(self):
         pass
 
+    @abstractmethod
+    def undo(self): pass
+
 #Интерфейс команды, п4
 class ActivateSubscriptionCommand(Command):
     def __init__(
@@ -98,6 +105,10 @@ class ActivateSubscriptionCommand(Command):
         self.amount = amount
         self.adapter = adapter
         self.subject = subject
+        # результат execute для undo 
+        self._transaction_id = None
+        self._activated = False
+
     #выполнение команды, п4
     def execute(self):
         machine = SubscriptionStateMachine()
@@ -117,6 +128,10 @@ class ActivateSubscriptionCommand(Command):
         if payment_result["success"]:
             machine.pay(True)
             machine.activate()
+
+            # сохраняем для undo
+            self._transaction_id = payment_result["transaction"]
+            self._activated = True
 
             self.subject.notify(
                 "subscription_activated",
@@ -146,6 +161,32 @@ class ActivateSubscriptionCommand(Command):
             "message": "Ошибка оплаты",
             "state": machine.state.value
         }
+    
+    def undo(self):
+        # отменять нечего если execute не дошёл до активации
+        if not self._activated:
+            return {"message": "Подписка не была активирована"}
+
+        # возврат денег через адаптер
+        refund_result = self.adapter.refund(self.amount, self._transaction_id)
+
+        self.subject.notify(
+            "subscription_cancelled",
+            {
+                "user_id": self.user_id,
+                "transaction": self._transaction_id,
+                "refund": refund_result
+            }
+        )
+
+        self._activated = False
+        self._transaction_id = None
+
+        return {
+            "message": "Подписка отменена, деньги возвращены",
+            "refund": refund_result
+        }
+
 # Базовый шаблон, п5
 class BaseRecommendationTemplate(ABC):
     #шаблонный метод, п5

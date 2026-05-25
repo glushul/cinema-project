@@ -158,3 +158,19 @@ class Collection(Base):
     is_personal = Column(Integer, default=1)
 
     contents = relationship("Content", secondary=collection_content_table, backref="collections")
+
+class TicketPurchase(Base):
+    __tablename__ = "ticket_purchases"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    movie_id = Column(Integer, ForeignKey('contents.id'))
+    quantity = Column(Integer, default=1)
+    amount = Column(Float)
+    payment_method = Column(Enum(PaymentMethod), default=PaymentMethod.CARD)
+    cinema_type = Column(String)           # "premium" / "standard"
+    purchase_date = Column(DateTime, default=datetime.utcnow)
+    booking_code = Column(String, unique=True)
+
+    user = relationship("User", backref="ticket_purchases")
+    movie = relationship("Content", backref="ticket_purchases")
