@@ -12,7 +12,7 @@ python -m venv venv
 
 ### 3. Установи зависимости
 ```bash
-pip install fastapi uvicorn sqlalchemy pydantic
+pip install fastapi uvicorn sqlalchemy pydantic sqladmin
 ```
 
 ### 4. Запусти сервер
