@@ -70,7 +70,10 @@ Score = 0.4·R + 0.4·P + 0.2·N
 
 | Паттерн | Файл | Классы | Назначение |
 |---------|------|--------|------------|
-| **🔄 Template Method** | `services/patterns.py` | `BaseSubscriptionProcessor`, `BasicSubscriptionProcessor`, `PremiumSubscriptionProcessor` | Фиксирует алгоритм оформления подписки; наследники переопределяют шаги валидации и проверки оплаты |
-| **⚙️ Strategy** | `services/strategies.py` | `PaymentStrategy`, `CardPaymentStrategy`, `SBPPaymentStrategy`, `SortingStrategy`, `ByRatingStrategy`, `ByYearStrategy` | Динамический выбор способа оплаты и алгоритма сортировки каталога |
-| **🏭 Abstract Factory** | `services/patterns.py` | `INotifier`, `EmailNotifierFactory`, `PushNotifierFactory` | Создание семейства уведомлений (Email/Push) в зависимости от тарифа |
+| **🔄 Template Method** | `services/processes.py` | `BaseSubscriptionProcessor`, `BasicSubscriptionProcessor`, `PremiumSubscriptionProcessor` | Фиксирует алгоритм оформления подписки; наследники переопределяют шаги валидации и проверки оплаты |
+| **⚙️ Strategy** | `services/strategies.py` | `PaymentStrategy`, `CardPaymentStrategy`, `SBPPaymentStrategy`, `PaymentContext`, `SortingStrategy`, `ByRatingStrategy`, `ByYearStrategy`, `SortingContext`, `PaymentStrategyFactory` | Динамический выбор способа оплаты и алгоритма сортировки каталога; фабричный метод инкапсулирует создание стратегии по строковому ключу |
+| **👁️ Observer** | `services/observer.py` | `Observer`, `TicketPurchaseSubject`, `EmailNotificationObserver`, `PurchaseHistoryObserver`, `SalesStatsObserver` | Оповещение связанных систем после покупки билета: email-уведомление, запись в историю, обновление статистики |
+| **🏭 Factory Method** | `services/strategies.py` | `PaymentStrategyFactory` | Централизованное создание стратегии оплаты по типу; роутер не зависит от конкретных классов стратегий |
+| **🏗️ Abstract Factory** | `services/abstract_factory.py` | `TicketPurchaseFactory`, `PremiumCinemaFactory`, `StandardCinemaFactory`, `CinemaFactoryRegistry` | Создание семейства объектов (стратегия оплаты + набор наблюдателей) в зависимости от типа кинотеатра; Premium даёт полный набор, Standard — урезанный |
+| **📋 Command** | `services/processes.py` | `Command`, `ActivateSubscriptionCommand` | Инкапсуляция операции активации подписки с поддержкой отмены через `undo()`: при отмене возвращает деньги и удаляет подписку из БД |
 | **🎭 Decorator** | `services/filters.py` | `GenreFilterDecorator`, `RatingFilterDecorator`, `YearFilterDecorator` | Динамическое наложение фильтров на каталог без изменения базового объекта |
