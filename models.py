@@ -112,7 +112,7 @@ class UserSubscription(Base):
     is_active = Column(Integer, default=1) # 1 = True, 0 = False
 
     user = relationship("User", back_populates="subscriptions")
-    payments = relationship("PaymentHistory", back_populates="subscription")
+    payments = relationship("PaymentHistory", back_populates="subscription", cascade="all, delete-orphan")
 
     @property
     def price(self) -> float:
