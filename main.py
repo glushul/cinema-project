@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from database import db_manager, Base
-from endpoints import auth, catalog, processes, seed, subscription
+from endpoints import auth, catalog, processes, seed, subscription, tickets
 
 app = FastAPI(title="Cinema Lab System")
 BASE_DIR = Path(__file__).resolve().parent
@@ -21,6 +21,7 @@ app.include_router(auth.router)
 app.include_router(subscription.router)
 app.include_router(catalog.router)
 app.include_router(processes.router)
+app.include_router(tickets.router)
 
 @app.get("/")
 def read_root():

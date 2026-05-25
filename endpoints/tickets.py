@@ -1,10 +1,21 @@
+from services.observer import (
+    TicketPurchaseSubject,
+    EmailNotificationObserver,
+    PurchaseHistoryObserver,
+    SalesStatsObserver,
+)
+from services.strategies import PaymentContext, CardPaymentStrategy, SBPPaymentStrategy
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from strategy_service import PaymentContext, CardPaymentStrategy, SBPPaymentStrategy
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
 
-TICKET_PRICE = 350.0  
+TICKET_PRICE = 350.0
+
+ticket_subject = TicketPurchaseSubject()
+ticket_subject.attach(EmailNotificationObserver())
+ticket_subject.attach(PurchaseHistoryObserver())
+ticket_subject.attach(SalesStatsObserver())
 
 PAYMENT_STRATEGIES = {
     "card": CardPaymentStrategy(),
@@ -13,9 +24,10 @@ PAYMENT_STRATEGIES = {
 
 class TicketRequest(BaseModel):
     movie_id: int
+    movie_title: str
     user_id: int
-    quantity: int         
-    payment_method: str    
+    quantity: int
+    payment_method: str
 
 @router.post("/buy")
 def buy_ticket(data: TicketRequest):
@@ -33,11 +45,19 @@ def buy_ticket(data: TicketRequest):
     if not paid:
         raise HTTPException(402, detail="Оплата не прошла")
 
-    return {
-        "status": "success",
+    # Наблюдатель: оповещаем всех после успешной оплаты
+    ticket_subject.complete_purchase({
+        "user_id": data.user_id,
         "movie_id": data.movie_id,
+        "movie_title": data.movie_title,
         "quantity": data.quantity,
         "total": amount,
         "payment_method": data.payment_method,
+    })
+
+    return {
+        "status": "success",
+        "quantity": data.quantity,
+        "total": amount,
         "message": f"Куплено {data.quantity} билет(ов) на сумму {amount:.0f} ₽"
     }

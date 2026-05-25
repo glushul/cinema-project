@@ -30,12 +30,12 @@ class PaymentStrategy(ABC):
 
 class CardPaymentStrategy(PaymentStrategy):
     def pay(self, amount: float) -> bool:
-        print(f"💳 Оплата картой: {amount}₽")
+        print(f"Оплата картой: {amount}₽")
         return True
 
 class SBPPaymentStrategy(PaymentStrategy):
     def pay(self, amount: float) -> bool:
-        print(f"🏦 Оплата через СБП: {amount}₽")
+        print(f"Оплата через СБП: {amount}₽")
         return True
 
 class PaymentContext:

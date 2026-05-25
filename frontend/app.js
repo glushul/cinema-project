@@ -271,6 +271,11 @@ function openMovieModal(movie) {
   document.getElementById("ticketSection").style.display = "block";
 
   document.getElementById("buyTicketBtn").onclick = async () => {
+    if (!currentUser) {
+      openAuthModal();
+      return;
+    }
+    
     const paymentMethod = document.querySelector("input[name='payment']:checked").value;
 
     const response = await fetch("/tickets/buy", {
@@ -278,7 +283,8 @@ function openMovieModal(movie) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         movie_id: movie.id,
-        user_id: currentUserId,
+        movie_title: movie.title,
+        user_id: currentUser.id,
         quantity: ticketQuantity,
         payment_method: paymentMethod,
       })
