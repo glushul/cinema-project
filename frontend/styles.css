@@ -193,6 +193,46 @@ select {
   outline: none;
 }
 
+.ticket-section {
+  margin: 40px 0 ;
+}
+
+.ticket-quantity-row label {
+  color: var(--text);;
+}
+
+.ticket-quantity-row {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+}
+
+.qtyValue {
+  font-size: 20px;
+}
+
+.payment-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 30px 0;
+}
+
+.payment-methods label {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.payment-methods input {
+  width: auto;
+  max-width: 20px;
+  min-width: 10px;
+  min-height: 10px;
+  max-height: 20px;
+}
+
 select option {
   color: #111827;
 }

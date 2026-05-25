@@ -43,3 +43,5 @@ class PaymentContext:
         self._strategy = strategy
     def execute(self, amount: float) -> bool:
         return self._strategy.pay(amount)
+    
+    

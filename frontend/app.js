@@ -226,6 +226,22 @@ function createPosterBackground(title) {
   `;
 }
 
+const TICKET_PRICE = 350;
+let ticketQuantity = 1;
+
+function updateTicketUI() {
+  document.getElementById("qtyValue").textContent = ticketQuantity;
+  document.getElementById("totalPrice").textContent = (TICKET_PRICE * ticketQuantity).toLocaleString("ru-RU");
+}
+
+document.getElementById("qtyMinus").onclick = () => {
+  if (ticketQuantity > 1) { ticketQuantity--; updateTicketUI(); }
+};
+
+document.getElementById("qtyPlus").onclick = () => {
+  if (ticketQuantity < 10) { ticketQuantity++; updateTicketUI(); }
+};
+
 function openMovieModal(movie) {
   modalPoster.style.setProperty("--poster", createPosterBackground(movie.title));
   modalMeta.textContent = [movie.year, movie.type].filter(Boolean).join(" • ") || "Фильм";
@@ -249,6 +265,29 @@ function openMovieModal(movie) {
   movieModal.classList.add("is-open");
   movieModal.setAttribute("aria-hidden", "false");
   document.body.style.overflow = "hidden";
+
+  ticketQuantity = 1;
+  updateTicketUI();
+  document.getElementById("ticketSection").style.display = "block";
+
+  document.getElementById("buyTicketBtn").onclick = async () => {
+    const paymentMethod = document.querySelector("input[name='payment']:checked").value;
+
+    const response = await fetch("/tickets/buy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        movie_id: movie.id,
+        user_id: currentUserId,
+        quantity: ticketQuantity,
+        payment_method: paymentMethod,
+      })
+    });
+
+    const data = await response.json();
+    document.getElementById("ticketResult").textContent =
+      data.message || "Что-то пошло не так";
+  };
 }
 
 function createFact(label, value) {
