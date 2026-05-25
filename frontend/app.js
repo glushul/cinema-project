@@ -521,9 +521,13 @@ document.querySelectorAll(".subscribeButton").forEach((button) => {
 
 cancelSubscriptionButton.addEventListener("click", async () => {
   if (!currentUser) return;
-  await api.cancelSubscription(currentUser.id);
-  await refreshCurrentUser();
-  await refreshSubscription();
+  try {
+    await api.cancelSubscription(currentUser.id);
+    await refreshCurrentUser();
+    await refreshSubscription();
+  } catch (e) {
+    console.error("Ошибка отмены подписки:", e);
+  }
 });
 
 searchForm.addEventListener("submit", (event) => {
