@@ -44,4 +44,14 @@ class PaymentContext:
     def execute(self, amount: float) -> bool:
         return self._strategy.pay(amount)
     
-    
+class PaymentStrategyFactory:
+    @staticmethod
+    def create(payment_method: str) -> PaymentStrategy:
+        strategies = {
+            "card": CardPaymentStrategy(),
+            "sbp": SBPPaymentStrategy(),
+        }
+        strategy = strategies.get(payment_method)
+        if not strategy:
+            raise ValueError(f"Неизвестный способ оплаты: {payment_method}")
+        return strategy    

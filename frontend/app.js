@@ -278,6 +278,8 @@ function openMovieModal(movie) {
     
     const paymentMethod = document.querySelector("input[name='payment']:checked").value;
 
+    const cinemaType = Math.random() < 0.4 ? "premium" : "standard";
+
     const response = await fetch("/tickets/buy", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -287,12 +289,16 @@ function openMovieModal(movie) {
         user_id: currentUser.id,
         quantity: ticketQuantity,
         payment_method: paymentMethod,
+        cinema_type: cinemaType,
       })
     });
 
     const data = await response.json();
-    document.getElementById("ticketResult").textContent =
-      data.message || "Что-то пошло не так";
+    if (!response.ok) {
+      document.getElementById("ticketResult").textContent = data.detail || "Ошибка";
+      return;
+    }
+    document.getElementById("ticketResult").textContent = data.message;
   };
 }
 
